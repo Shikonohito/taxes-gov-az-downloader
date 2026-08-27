@@ -36,7 +36,7 @@ export function normalizePhone(value) {
     digits = digits.slice(3);
   }
   if (digits.length !== 9) {
-    throw new Error("ASAN_PHONE должен содержать 9 цифр после +994.");
+    throw new Error("ASAN_PHONE must contain 9 digits after +994.");
   }
   return digits;
 }
@@ -44,7 +44,7 @@ export function normalizePhone(value) {
 export function normalizeUserId(value) {
   const digits = String(value ?? "").replace(/\D/gu, "");
   if (digits.length !== 6) {
-    throw new Error("ASAN_USER_ID должен содержать 6 цифр.");
+    throw new Error("ASAN_USER_ID must contain 6 digits.");
   }
   return digits;
 }
@@ -52,7 +52,7 @@ export function normalizeUserId(value) {
 export function normalizeTin(value) {
   const normalized = String(value ?? "").replace(/\s/gu, "");
   if (normalized && !/^[A-Za-z0-9-]+$/u.test(normalized)) {
-    throw new Error("TAXPAYER_TIN содержит недопустимые символы.");
+    throw new Error("TAXPAYER_TIN contains unsupported characters.");
   }
   return normalized;
 }
@@ -61,7 +61,7 @@ function integerAtLeast(value, fallback, minimum, name) {
   if (value === undefined || value === "") return fallback;
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < minimum) {
-    throw new Error(`${name} должен быть целым числом не меньше ${minimum}.`);
+    throw new Error(`${name} must be an integer greater than or equal to ${minimum}.`);
   }
   return parsed;
 }

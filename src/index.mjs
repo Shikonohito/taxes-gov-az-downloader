@@ -41,7 +41,7 @@ async function waitForVisible(locator, timeoutMs) {
     if (visible) return visible;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  throw new Error("Не найден ожидаемый видимый элемент страницы.");
+  throw new Error("The expected visible page element was not found.");
 }
 
 function tinPattern(tin) {
@@ -56,7 +56,7 @@ async function hasInvoiceMenu(page) {
 async function fillAndSubmitAsan(page, config) {
   if (!config.phone || !config.userId) {
     throw new Error(
-      "Сессия входа отсутствует. Заполните ASAN_PHONE и ASAN_USER_ID в файле .env.",
+      "No authenticated session is available. Set ASAN_PHONE and ASAN_USER_ID in .env.",
     );
   }
 
@@ -64,13 +64,13 @@ async function fillAndSubmitAsan(page, config) {
   await page.locator("#userId").fill(config.userId);
   await page.locator("#loginPageSignInButton").click();
 
-  log("Запрос Asan İmza отправлен.");
-  log("Подтвердите совпадение кода и введите PIN1 на телефоне.");
+  log("The Asan İmza request was sent.");
+  log("Confirm the verification code and enter PIN1 on your phone.");
 }
 
 export async function waitForCabinetChoice(page, config) {
   if (!config.taxpayerTin) {
-    log("TAXPAYER_TIN не задан — после PIN1 выберите нужный кабинет в браузере вручную.");
+    log("TAXPAYER_TIN is not set. Select the required cabinet in the browser after PIN1.");
     await page.locator(INVOICE_MENU).first().waitFor({
       state: "attached",
       timeout: config.authTimeoutMs,
@@ -82,8 +82,8 @@ export async function waitForCabinetChoice(page, config) {
   const deadline = Date.now() + config.authTimeoutMs;
   let visibleTin = null;
 
-  // Опрос на стороне Node переживает как SPA-переход, так и полную навигацию
-  // после подтверждения PIN1.
+  // Polling from Node survives both SPA route changes and full navigations
+  // after PIN1 confirmation.
   while (Date.now() < deadline) {
     if (await hasInvoiceMenu(page)) return;
     visibleTin = await firstVisible(tinText).catch(() => null);
@@ -93,7 +93,7 @@ export async function waitForCabinetChoice(page, config) {
 
   if (!visibleTin) {
     throw new Error(
-      `За отведённое время кабинет с VÖEN ${config.taxpayerTin} не появился.`,
+      `The cabinet with VÖEN ${config.taxpayerTin} did not appear within the timeout.`,
     );
   }
 
@@ -103,11 +103,11 @@ export async function waitForCabinetChoice(page, config) {
   if ((await clickableAncestor.count()) > 0) {
     await clickableAncestor.first().click();
   } else {
-    // Карточки кабинетов обрабатывают всплывающее событие от дочернего текста.
+    // Cabinet cards handle the click event bubbled from their child text.
     await visibleTin.click();
   }
 
-  log(`Выбран кабинет с VÖEN ${config.taxpayerTin}.`);
+  log(`Selected the cabinet with VÖEN ${config.taxpayerTin}.`);
   await page.locator(INVOICE_MENU).first().waitFor({
     state: "attached",
     timeout: config.authTimeoutMs,
@@ -146,11 +146,11 @@ async function openInvoices(page, config) {
   }
 
   if (page.url().includes("/login")) {
-    throw new Error("Сессия завершилась до открытия раздела электронных счетов-фактур.");
+    throw new Error("The session expired before the electronic invoices page opened.");
   }
 
   await ensureSentInvoicesSelected(page);
-  log("Раздел E-qaimə-fakturalar → Göndərilənlər открыт.");
+  log("Opened E-qaimə-fakturalar → Göndərilənlər.");
 }
 
 function timestamp() {
@@ -196,15 +196,15 @@ async function clickExportOption(page, label) {
 }
 
 export async function downloadExport(page, config, exportKind) {
-  log(`Запрашиваю экспорт «${exportKind.label}»...`);
+  log(`Requesting the “${exportKind.label}” export...`);
   await clickExportOption(page, exportKind.label);
 
   const modal = page
     .locator(".ant-modal-content, [role='dialog']")
     .filter({ hasText: EXCEL_CONFIRMATION });
   const visibleModal = await waitForVisible(modal, 15_000);
-  // На реальном портале футер диалога рендерится рядом с modal-body, а не
-  // внутри найденного контейнера с текстом подтверждения.
+  // On the live portal, the dialog footer is rendered next to modal-body,
+  // rather than inside the container that holds the confirmation text.
   const confirmButton = await waitForVisible(
     page.getByText("Bəli", { exact: true }),
     15_000,
@@ -223,9 +223,9 @@ export async function downloadExport(page, config, exportKind) {
   await download.saveAs(destination);
 
   const failure = await download.failure();
-  if (failure) throw new Error(`Браузер не смог скачать файл: ${failure}`);
+  if (failure) throw new Error(`The browser could not download the file: ${failure}`);
 
-  log(`Сохранён ${destination}`);
+  log(`Saved ${destination}`);
   await visibleModal.waitFor({ state: "hidden", timeout: 15_000 }).catch(() => {});
   return destination;
 }
@@ -245,10 +245,10 @@ async function launchContext(config) {
     return await chromium.launchPersistentContext(config.profileDir, options);
   } catch (error) {
     throw new Error(
-      `Не удалось запустить браузер (${config.browserChannel}). ` +
-        "Установите Chromium командой \"npx playwright install chromium\" " +
-        "и укажите BROWSER_CHANNEL=chromium. " +
-        `Исходная ошибка: ${error.message}`,
+      `Could not start the browser (${config.browserChannel}). ` +
+        "Install Chromium with \"npx playwright install chromium\" " +
+        "and set BROWSER_CHANNEL=chromium. " +
+        `Original error: ${error.message}`,
     );
   }
 }
@@ -276,13 +276,13 @@ async function main() {
       downloaded.push(await downloadExport(page, config, exportKind));
     }
 
-    log("Готово. Оба Excel-файла скачаны:");
+    log("Done. Both Excel files were downloaded:");
     for (const filePath of downloaded) console.log(`  ${filePath}`);
   } catch (error) {
     const screenshotPath = path.join(config.downloadDir, `error-${timestamp()}.png`);
     await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
-    console.error(`\nОшибка: ${error.message}`);
-    console.error(`Диагностический снимок (если удалось создать): ${screenshotPath}`);
+    console.error(`\nError: ${error.message}`);
+    console.error(`Diagnostic screenshot (if one was created): ${screenshotPath}`);
     process.exitCode = 1;
   } finally {
     await close();

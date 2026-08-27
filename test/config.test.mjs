@@ -8,12 +8,12 @@ test("normalizePhone accepts local and international Azerbaijan formats", () => 
 });
 
 test("normalizePhone rejects an incomplete number", () => {
-  assert.throws(() => normalizePhone("50123"), /9 цифр/u);
+  assert.throws(() => normalizePhone("50123"), /9 digits/u);
 });
 
 test("normalizeUserId requires six digits", () => {
   assert.equal(normalizeUserId("12 34 56"), "123456");
-  assert.throws(() => normalizeUserId("12345"), /6 цифр/u);
+  assert.throws(() => normalizeUserId("12345"), /6 digits/u);
 });
 
 test("normalizeTin removes spaces", () => {
