@@ -1,0 +1,17 @@
+{
+  "name": "taxes-gov-az-downloader",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Download invoice and payer Excel exports from new.e-taxes.gov.az",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "test": "node test/run.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}
